@@ -1,6 +1,6 @@
 # Claude AI 使用指引
 
-**最后更新**: 2025-12-24
+**最后更新**: 2025-12-26
 
 本文档告诉Claude AI如何有效地使用本项目文档。
 
@@ -81,7 +81,17 @@ Read: $PROJECT_ROOT/.claude/project_state.md
 3. $PROJECT_ROOT/.claude/project_state.md
 4. 报错的代码文件
 5. $PROJECT_ROOT/.claude/design_spec.md (如果需要理解设计)
+6. 修复BUG
+7. **等待用户验证** ✓ 修复成功 或 ✗ 仍有问题
+8. 用户确认后，更新TODO.md标记完成
 ```
+
+**重要**: 修复TODO.md中的BUG时，必须等待用户验证后再标记为完成。
+
+**为什么？**
+- 用户验证是"Definition of Done"的一部分（[LLM开发原则]($PROJECT_ROOT/.claude/coding-prompt/Virtues.md)原则1）
+- 确保修复真正解决问题，而非表面上通过编译
+- 避免错误的"完成"声明影响后续工作
 
 ### 场景4：用户报告新问题
 
@@ -102,7 +112,33 @@ Read: $PROJECT_ROOT/.claude/project_state.md
 5. 开始实现
 ```
 
-### 场景6：用户要求添加功能
+### 场景6：用户使用"保存问题/需求："前缀
+
+**重要**: 当用户请求以"保存问题/需求："开头时，Claude应该：
+
+1. **仅分析问题/需求**，理解其内容和范围
+2. **保存到TODO.md**，按照标准格式添加到文档末尾
+3. **不立即提出解决方案**，不开始实现
+4. **确认已保存**，简要总结记录的内容
+
+**响应格式**:
+```
+✅ 已记录到TODO列表
+
+【类型】新功能 / 增强 / 优化 / Bug
+【优先级】高 / 中 / 低
+【简要描述】...（用户提供的描述）
+
+该需求/问题已加入待处理队列。如需立即处理，请明确告知。
+```
+
+**为什么这样做？**
+- 用户可能只想记录想法，暂时不想实现
+- 避免未经用户同意就开始工作
+- 让用户控制何时处理哪个需求
+- 符合"不不确定就问用户"的原则
+
+### 场景7：用户要求添加功能
 
 ```
 1. $PROJECT_ROOT/.claude/claude_guide.md
@@ -570,6 +606,47 @@ A: 继承 `src/ui/base/` 的抽象接口，参考CLI实现。
 - [通用模板]($PROJECT_ROOT/.claude/doc-template/general/) - README、CHANGELOG、贡献指南
 - [开发模板]($PROJECT_ROOT/.claude/doc-template/development/) - 阶段报告、代码审查、测试报告
 - [项目模板]($PROJECT_ROOT/.claude/doc-template/project/) - 需求文档、设计文档、API文档
+
+#### 项目模板使用规范
+
+**重要**: `$PROJECT_ROOT/.claude/doc-template/project/` 目录下的模板在使用时会被拷贝到 `$PROJECT_ROOT/.claude/` 目录下并改名。
+
+模板文件与目标文件映射关系：
+
+| 模板文件 | 目标路径（.claude下） | 说明 |
+|---------|---------------------|------|
+| `requirements_template.md` | `$PROJECT_ROOT/.claude/PRD.md` | 产品需求文档 |
+| `design_spec_template.md` | `$PROJECT_ROOT/.claude/design-spec.md` | 设计规格文档 |
+| `development_plan_template.md` | `$PROJECT_ROOT/.claude/development-plan.md` | 开发计划文档 |
+| `api_doc_template.md` | `$PROJECT_ROOT/.claude/api-doc.md` | API 文档 |
+| `project_state_template.md` | `$PROJECT_ROOT/.claude/project-state.md` | 项目状态文档 |
+| `todo_template.md` | `$PROJECT_ROOT/.claude/todo.md` | 待办事项文档 |
+
+**相对路径规则**:
+
+- 模板文件内的所有文档链接引用，**必须以模板被拷贝到 `$PROJECT_ROOT/.claude` 目录后的位置为假设**
+- 即：模板文件在 `$PROJECT_ROOT/.claude/doc-template/project/` 时，其内部引用应该假设文件已在 `$PROJECT_ROOT/.claude/` 目录下
+- 示例：
+  - ✅ 正确：`[项目状态](.claude/project_state.md)`
+  - ❌ 错误：`[项目状态]($PROJECT_ROOT/.claude/project_state.md)` 或 `[项目状态](../project_state.md)`
+
+**模板文件相对路径（$PROJECT_ROOT/.claude目录下）**:
+
+```
+$PROJECT_ROOT/.claude/
+├── PRD.md                    # 产品需求文档
+├── design-spec.md            # 设计规格文档
+├── development-plan.md       # 开发计划文档
+├── api-doc.md                # API 文档
+├── project-state.md          # 项目状态文档
+└── todo.md                   # 待办事项文档
+```
+
+**模板维护规则**:
+
+1. 修改模板文件时，确保所有相对链接指向上述结构中的正确路径
+2. 模板文件之间的交叉引用应使用同级目录路径（不带 `./` 或 `../`）
+3. 引用非 `$PROJECT_ROOT/.claude` 目录下的文档时，使用相对于项目根目录的路径
 
 ### 核心文档
 - [$PROJECT_ROOT/.claude/TODO.md]($PROJECT_ROOT/.claude/TODO.md) - 需求和问题跟踪
